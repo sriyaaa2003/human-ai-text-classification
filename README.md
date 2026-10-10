@@ -1,35 +1,58 @@
-# Classifying Human–AI Collaboration Patterns in Text
+# Who does an AI-text detector accuse?
 
-Six-class classification of how a text was produced, from fully human to fully AI-written, using interpretable stylometric features and a hierarchical classifier, plus association-rule mining to describe what distinguishes each class.
+An audit of simple AI-text detectors on **real human and machine texts**: trained on ChatGPT-vs-human answers, then tested on writers,
+domains and generators they never saw, and on text written to evade them. The question is not "how accurate is it" but **who gets
+wrongly flagged**.
 
-## Classes
-| ID | Class |
-|----|-------|
-| 0 | Fully Human |
-| 1 | Human-AI Polished |
-| 2 | AI-AI Humanized |
-| 3 | Human-AI Continued |
-| 4 | Deeply Mixed |
-| 5 | AI-Human Edited |
+**Data (all real, none generated here).** [HC3](https://huggingface.co/datasets/Hello-SimpleAI/HC3): human and ChatGPT answers in five
+domains (6,000 questions from four domains, split 70/15/15 for training, validation and test; the fifth domain, CS abstracts, is held out entirely). Liang et al. 2023
+([repo](https://github.com/Weixin-Liang/ChatGPT-Detector-Bias)): TOEFL essays by non-native writers (91) and the same essays polished by
+GPT-4, US 8th-grade essays (88) and a GPT-simplified version, college-application essays (70) and CS224N abstracts (145) with GPT-3
+versions, including GPT-3 prompted to write in more literary language to evade detectors. Every text is cut to its first 160 words so length
+cannot decide the label.
 
-## Pipeline (run the notebooks in this order)
-1. **`dataexploration.ipynb`**: loads the provided train/test JSONL files (288,918 + 72,661 articles) and inspects class balance and text length. The original split is skewed (class 3 is 3.7% of train but 51.2% of test).
-2. **`dataprep.ipynb`**: merges everything (361,579 articles), makes a new stratified split (289,263 train / 72,316 test), and extracts 15 stylometric features with spaCy: burstiness, noun/verb/adjective/adverb ratios, POS diversity, syntactic complexity, pronouns, contractions, hapax legomena, formal transitions, passive voice, n-gram repetition, style breaks and lexical density.
-3. **`hier.ipynb`**: hierarchical classifier (group detectors for classes 0–2 and 4–5, SMOTE for the rare class 5) compared with Gradient Boosting and Random Forest, then combined in a weighted-vote ensemble. The hierarchical model uses XGBoost classifiers.
-4. **`binandpm.ipynb`**: discretises features into bins with decision-tree splits, mines association rules per class with a custom Apriori implementation, and turns them into 149 class-specific rules and readable feature profiles.
-5. **`rules+hier.ipynb`**: blends the rule-based scores with the hierarchical model.
+**Detectors.** 20 stylometric features (sentence-length burstiness, type-token ratio, transitions, punctuation, ...); six GPT-2 token
+statistics (mean log-probability, its spread, entropy, share of top-1 tokens: the classic "perplexity" signals); both together; and a TF-IDF
+baseline. Each threshold is fixed once so that 5% of human validation answers are flagged; everything else is measured at that threshold.
 
-## Results (held-out 72,316 articles)
-| Model | Accuracy | Macro F1 |
-|-------|---------:|---------:|
-| Hierarchical classifier | 62.15% | 0.4895 |
-| Random Forest (tuned) | 59.28% | 0.5162 |
-| Ensemble (hierarchical + Gradient Boosting + Random Forest) | 62.19% | 0.5445 |
-| Hierarchical + mined rules | 62.14% | 0.4897 |
+![flag rates](results/flag_rates.png)
 
-Mixed-authorship classes are hard: the two rarest classes score the lowest (class 5 F1 ≈ 0.07 for the hierarchical model). Adding the mined rules gave essentially no gain (+0.0002 macro F1), but the rules are useful for explanation, e.g. fully human text tends to show high burstiness and few formal transitions, while AI-AI humanized text shows low burstiness and high lexical density.
+## Findings
 
-## Setup
-Python 3 with `pandas`, `numpy`, `scikit-learn`, `xgboost`, `imbalanced-learn`, `spacy` (with an English model), `matplotlib`, `seaborn`.
+| group (all human unless stated) | stylometry | GPT-2 statistics | both | TF-IDF |
+|---|---:|---:|---:|---:|
+| ChatGPT-vs-human test, human answers | 3.9% | 6.9% | 6.4% | 6.6% |
+| same, **new domain** (CS abstracts), human | 54.8% | 22.0% | 33.8% | 55.7% |
+| US 8th-grade essays | 5.7% | 3.4% | 4.5% | 25.0% |
+| college essays | 0.0% | 1.4% | 0.0% | 0.0% |
+| **TOEFL essays, non-native writers** | 6.6% | **29.7%** [21, 40] | **34.1%** [25, 44] | 11.0% |
+| TOEFL essays polished by GPT-4 | 6.6% | 12.1% | 18.7% | 18.7% |
+| GPT-3 abstracts | 78.6% | 76.6% | 84.1% | 51.7% |
+| GPT-3 abstracts **prompted to evade** | 76.6% | 15.9% | 26.2% | 24.8% |
 
-The notebooks expect the dataset in `../data/` (`train.jsonl`, `test.jsonl`) and write intermediate files to `../output/`. Neither folder is included in this repository.
+- **In distribution it looks perfect**: AUROC 0.98 to 0.999 on held-out ChatGPT answers, for every detector.
+- **The perplexity-style detectors accuse non-native writers**: about 30% of TOEFL essays are flagged against 0% to 5% of native writers'
+  (the same bias Liang et al. reported for commercial detectors, reproduced here with a small model). Non-native essays have lower
+  perplexity, so they look machine-made: mean token log-probability -3.09 for them against -3.79 for native essays and -2.25 for ChatGPT.
+- **Polishing makes it worse in the wrong direction**: the GPT-4-polished TOEFL essays are flagged *less* than the originals (12% to 19% against
+  30% to 34%), and on the pair human original vs polished the combined detector scores AUROC 0.40, below chance.
+- **Evasion works**: asking GPT-3 for literary language drops detection from 77% to 16% for the perplexity detector. The stylometric
+  detector survives it (77%) but flags 22% of human CS224N abstracts (against 1% to 8% for the others).
+- **Domain shift breaks the false-positive rate**: on a new domain the same threshold flags 22% to 56% of human text, not 5%.
+
+So no single detector is safe to use as evidence against a person. A threshold set in distribution does not control who is accused elsewhere.
+Limits: small non-native sample (91 essays; intervals are wide), 160-word excerpts, GPT-2 small as the language model, the evasion set is one
+prompting strategy on one generator, and results say nothing about newer commercial detectors.
+
+## Run
+
+```bash
+pip install -e .[dev]
+python scripts/get_data.py              # HC3 (74 MB) and the essay sets, into data/
+python -m aitext.study --data data --out results      # about an hour on CPU (GPT-2 features are cached)
+python scripts/plot.py && pytest        # 5 tests
+```
+
+`course-notebooks/` holds the earlier course project (a six-class hierarchical classifier of human, polished, humanised and mixed texts on a
+361,579-article dataset that is not included, 62.2% accuracy, macro F1 0.54, with Apriori-mined rules); its data is not available, so it is not
+reproduced here.

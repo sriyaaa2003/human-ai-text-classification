@@ -1,0 +1,33 @@
+audit,detector,n,auroc
+HC3 test (same domains),stylometry (20 features),1534,0.9843410296639917
+HC3 test (same domains),GPT-2 token statistics (6 features),1534,0.9926498710667717
+HC3 test (same domains),stylometry + GPT-2,1534,0.9989273979285691
+HC3 test (same domains),TF-IDF words (content baseline),1534,0.9957996834888975
+HC3 held-out domain (CS abstracts),stylometry (20 features),1598,0.8566700240131203
+HC3 held-out domain (CS abstracts),GPT-2 token statistics (6 features),1598,0.9944251340458428
+HC3 held-out domain (CS abstracts),stylometry + GPT-2,1598,0.9923637337660813
+HC3 held-out domain (CS abstracts),TF-IDF words (content baseline),1598,0.9166918598185153
+CS224N abstracts vs GPT-3,stylometry (20 features),290,0.8785731272294888
+CS224N abstracts vs GPT-3,GPT-2 token statistics (6 features),290,0.9759334126040428
+CS224N abstracts vs GPT-3,stylometry + GPT-2,290,0.9501070154577882
+CS224N abstracts vs GPT-3,TF-IDF words (content baseline),290,0.8738168846611177
+CS224N abstracts vs GPT-3 asked to evade,stylometry (20 features),290,0.8633055885850178
+CS224N abstracts vs GPT-3 asked to evade,GPT-2 token statistics (6 features),290,0.8055648038049941
+CS224N abstracts vs GPT-3 asked to evade,stylometry + GPT-2,290,0.6683947681331748
+CS224N abstracts vs GPT-3 asked to evade,TF-IDF words (content baseline),290,0.7624732461355529
+College essays vs GPT-3,stylometry (20 features),101,0.8046082949308756
+College essays vs GPT-3,GPT-2 token statistics (6 features),101,1.0
+College essays vs GPT-3,stylometry + GPT-2,101,1.0
+College essays vs GPT-3,TF-IDF words (content baseline),101,0.7668202764976958
+College essays vs GPT-3 asked to evade,stylometry (20 features),101,0.9525345622119815
+College essays vs GPT-3 asked to evade,GPT-2 token statistics (6 features),101,0.6649769585253457
+College essays vs GPT-3 asked to evade,stylometry + GPT-2,101,0.7064516129032259
+College essays vs GPT-3 asked to evade,TF-IDF words (content baseline),101,0.8543778801843318
+TOEFL essays vs the same essays polished by GPT-4,stylometry (20 features),182,0.5168457915710664
+TOEFL essays vs the same essays polished by GPT-4,GPT-2 token statistics (6 features),182,0.2748460330877913
+TOEFL essays vs the same essays polished by GPT-4,stylometry + GPT-2,182,0.4020045888177757
+TOEFL essays vs the same essays polished by GPT-4,TF-IDF words (content baseline),182,0.6473855814515156
+US student essays vs the same essays simplified by GPT,stylometry (20 features),176,0.6035640495867769
+US student essays vs the same essays simplified by GPT,GPT-2 token statistics (6 features),176,0.9267820247933884
+US student essays vs the same essays simplified by GPT,stylometry + GPT-2,176,0.871900826446281
+US student essays vs the same essays simplified by GPT,TF-IDF words (content baseline),176,0.8801652892561984

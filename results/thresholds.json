@@ -1,0 +1,9 @@
+{
+  "target_fpr_on_hc3_val_human": 0.05,
+  "thresholds": {
+    "stylometry (20 features)": 0.6204969897209077,
+    "GPT-2 token statistics (6 features)": 0.14854099436792614,
+    "stylometry + GPT-2": 0.00010614944851792516,
+    "TF-IDF words (content baseline)": 0.4046171073896046
+  }
+}
